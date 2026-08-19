@@ -13,6 +13,10 @@ import workflowRouter from "./routes/workflow.routes.js";
 // Create an instance of the express application
 const app = express();
 
+// Render terminates TLS at a proxy. Without this, Express/Arcjet see a private
+// IP and bot detection / rate limits misclassify real visitors.
+app.set("trust proxy", true);
+
 //Express built-in middlewares
 app.use(express.json());
 // Parses incoming requests with JSON payloads and makes the data available in req.body
@@ -20,6 +24,12 @@ app.use(express.urlencoded({ extended: false }));
 // Parses incoming requests with URL-encoded payloads (from forms), using the querystring library
 app.use(cookieParser());
 // Parses cookies attached to the client request and makes them available in req.cookies
+
+// Register before Arcjet so the homepage and Render health checks are not blocked as bots.
+app.get("/", (req, res) => {
+  res.send("Welcome to the Subscription Tracker API");
+});
+
 app.use(arcjetMiddleware);
 
 app.use("/api/v1/auth", authRouter);
@@ -28,12 +38,6 @@ app.use("/api/v1/subscriptions", subscriptionRouter);
 app.use("/api/v1/workflows", workflowRouter);
 
 app.use(errorMiddleware);
-
-// Define a route for the root ("/") URL using the GET method
-app.get("/", (req, res) => {
-  // Send a simple message as a response when the root URL is accessed
-  res.send("Welcome to the Subscription Tracker API");
-});
 
 // The server doesn't start listening yet, we'll need to specify a port at the end of this file.
 app.listen(PORT, "0.0.0.0", async () => {
