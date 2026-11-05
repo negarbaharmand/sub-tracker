@@ -3,15 +3,15 @@
 Feature: cancel and delete subscription (`specs/cancel-subscription.md`).
 Workflow: spec, then tasks run test-first by agents in separate git worktrees, then human review and merge.
 
-Model for T1 to T4 was not recorded at the time: fill in the `Model` column. T0 and the merge-conflict fix were done by Claude Sonnet 5.5 in the main session.
+All four task agents (T1 to T4) ran on Claude Sonnet 5.5. T0, the merge-conflict fix, T5 and this log were done by Claude Sonnet 5.5 in the main session.
 
 | Task | Model | Where | Result |
 |---|---|---|---|
 | T0 test harness | Claude Sonnet 5.5 | main repo | Green after one fix, see below |
-| T1 ownership helper | _fill in_ | `../st-t1` | Merged, no defects found in review |
-| T4 workflow re-check | _fill in_ | `../st-t4` | Merged, minor test weaknesses |
-| T2 cancel | _fill in_ | `../st-t2` | Merged after resolving a conflict |
-| T3 delete | _fill in_ | `../st-t3` | Merged after resolving a conflict |
+| T1 ownership helper | Claude Sonnet 5.5 | `../st-t1` | Merged, no defects found in review |
+| T4 workflow re-check | Claude Sonnet 5.5 | `../st-t4` | Merged, minor test weaknesses |
+| T2 cancel | Claude Sonnet 5.5 | `../st-t2` | Merged after resolving a conflict |
+| T3 delete | Claude Sonnet 5.5 | `../st-t3` | Merged after resolving a conflict |
 | T5 README | Claude Sonnet 5.5 | main repo | Two table rows added |
 
 ## T0: test harness
@@ -40,7 +40,7 @@ AC-8 was the task I expected agents to fumble: testing that `sendReminderEmail` 
 - The mocks for `Subscription.findById` return values in call order. The first call is `fetchSubscription`, the second is the re-check. A third lookup would break the tests in a confusing way.
 - The AC-9 assertion `resolves.not.toThrow()` is weak. `resolves.toBeUndefined()` is stricter. The `sendReminderEmail` assertion next to it carries most of the check.
 
-**What I changed**: nothing yet. Candidate follow-ups: key the mock on the lookup, tighten the AC-9 assertion.
+**What I changed**: the mock helper now returns the start-of-workflow document for the first lookup and the later document for every lookup after that, so the tests no longer depend on the exact call count. AC-9 now asserts `resolves.toBeUndefined()`.
 
 ## T2 and T3: cancel and delete
 

@@ -13,14 +13,15 @@ const { sendReminderEmail } = await import("../utils/send-email.js");
 const { runReminders } = await import("../controllers/workflow.controller.js");
 
 // Doc stand-in: findById(...).populate(...) resolves to a doc with toObject().
-const mockFindById = (...docs) => {
-  for (const doc of docs) {
-    Subscription.findById.mockReturnValueOnce({
-      populate: vi.fn().mockResolvedValue(
-        doc && { toObject: () => doc },
-      ),
-    });
-  }
+// The first lookup (workflow start) sees `atStart`; every later lookup (the
+// re-check before sending) sees `later`, so extra lookups don't break the tests.
+const mockFindById = (atStart, later) => {
+  const query = (doc) => ({
+    populate: vi.fn().mockResolvedValue(doc && { toObject: () => doc }),
+  });
+  Subscription.findById
+    .mockReturnValueOnce(query(atStart))
+    .mockReturnValue(query(later));
 };
 
 // Fake Upstash context: run executes the step, sleepUntil returns immediately.
@@ -57,7 +58,7 @@ describe("workflow re-check before send", () => {
 
   it("AC-9: exits without throwing when deleted mid-workflow", async () => {
     mockFindById(makeSub("active"), null);
-    await expect(runReminders(makeContext())).resolves.not.toThrow();
+    await expect(runReminders(makeContext())).resolves.toBeUndefined();
     expect(sendReminderEmail).not.toHaveBeenCalled();
   });
 });
