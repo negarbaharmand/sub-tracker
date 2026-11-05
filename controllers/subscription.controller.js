@@ -70,3 +70,18 @@ export const getUserSubscriptions = async (req, res, next) => {
         next(error);
     }
 }
+
+export const cancelSubscription = async (req, res, next) => {
+    try {
+        await findOwnedSubscription(req.params.id, req.user.id);
+        // Atomic update skips the pre-save hook, which could flip status to 'expired' or touch renewalDate.
+        const subscription = await Subscription.findByIdAndUpdate(
+            req.params.id,
+            {status: 'cancelled'},
+            {new: true},
+        );
+        res.status(200).json({success: true, data: subscription});
+    } catch (error) {
+        next(error);
+    }
+}
