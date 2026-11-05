@@ -1,6 +1,6 @@
 // Import the express module to create a web server
 import express from "express";
-import { PORT } from "./config/env.js";
+import { PORT, NODE_ENV } from "./config/env.js";
 import userRouter from "./routes/user.routes.js";
 import authRouter from "./routes/auth.routes.js";
 import subscriptionRouter from "./routes/subscription.routes.js";
@@ -40,9 +40,12 @@ app.use("/api/v1/workflows", workflowRouter);
 app.use(errorMiddleware);
 
 // The server doesn't start listening yet, we'll need to specify a port at the end of this file.
-app.listen(PORT, "0.0.0.0", async () => {
-  console.log(`Subscription Tracker API is running on port ${PORT}`);
-  await connectToDatabase();
-});
+// Skipped under test so supertest can use the app without binding a port or connecting to the DB.
+if (NODE_ENV !== "test") {
+  app.listen(PORT, "0.0.0.0", async () => {
+    console.log(`Subscription Tracker API is running on port ${PORT}`);
+    await connectToDatabase();
+  });
+}
 
 export default app;

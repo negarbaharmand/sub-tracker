@@ -53,6 +53,8 @@
 | `/api/v1/subscriptions`     | POST   | Create a new subscription     | ✅ Bearer token |
 | `/api/v1/subscriptions`     | GET    | List subscriptions for a user | ✅ Bearer token |
 | `/api/v1/subscriptions/:id` | PUT    | Update subscription           | ✅ Bearer token |
+| `/api/v1/subscriptions/:id/cancel` | PUT | Cancel subscription (stops reminders) | ✅ Bearer token |
+| `/api/v1/subscriptions/:id` | DELETE | Delete subscription (204)     | ✅ Bearer token |
 
 > ⚙️ End date is auto-calculated based on frequency if not provided.
 > 📧 Email reminders are sent automatically before renewals.

@@ -11,7 +11,7 @@ import {sendReminderEmail} from "../utils/send-email.js";
 
 const REMINDERS = [7, 5, 2, 1];
 
-export const sendReminders = serve(async (context) => {
+export const runReminders = async (context) => {
     const {subscriptionId} = context.requestPayload;
 
     const subscription = await fetchSubscription(context, subscriptionId);
@@ -34,7 +34,9 @@ export const sendReminders = serve(async (context) => {
             await triggerReminder(context, `${daysBefore} days before reminder`, subscription);
         }
     }
-});
+};
+
+export const sendReminders = serve(runReminders);
 
 const fetchSubscription = async (context, subscriptionId) => {
     const doc = await Subscription.findById(subscriptionId).populate('user', 'name email');
@@ -55,13 +57,19 @@ const sleepUntilReminders = async (context, label, date) => {
 
 const triggerReminder = async (context, label, subscription) => {
     return await context.run(label, async () => {
+        // Re-check: subscription may have been cancelled or deleted while sleeping.
+        const doc = await Subscription.findById(subscription._id).populate('user', 'name email');
+        if (!doc) return;
+        const fresh = doc.toObject();
+        if (fresh.status !== 'active') return;
+
         console.log(`Triggering ${label} reminder`);
         //send email, SMS, push notification
 
         await sendReminderEmail({
-            to: subscription.user.email,
+            to: fresh.user.email,
             type: label,
-            subscription,
+            subscription: fresh,
         });
     });
 }
