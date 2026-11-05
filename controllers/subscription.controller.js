@@ -85,3 +85,13 @@ export const cancelSubscription = async (req, res, next) => {
         next(error);
     }
 }
+
+export const deleteSubscription = async (req, res, next) => {
+    try {
+        const subscription = await findOwnedSubscription(req.params.id, req.user.id);
+        await subscription.deleteOne();
+        res.status(204).end();
+    } catch (error) {
+        next(error);
+    }
+};
